@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FAQ Chat Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    #chat-box {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+
+    .user, .bot {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+
+    .user {
+      background-color: #d1e7dd;
+      text-align: right;
+    }
+
+    .bot {
+      background-color: #e2e3e5;
+      text-align: left;
+    }
+
+    #input-area {
+      display: flex;
+    }
+
+    #prompt {
+      flex-grow: 1;
+      padding: 0.5rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 FAQ Chat Assistant</h1>
+  <div id="chat-box"></div>
+  <div id="input-area">
+    <input id="prompt" type="text" placeholder="Ask your question..." />
+    <button onclick="ask()">Send</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+
+    function addMessage(role, text) {
+      const msg = document.createElement("div");
+      msg.className = role;
+      msg.innerText = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function ask() {
+      const promptEl = document.getElementById("prompt");
+      const prompt = promptEl.value.trim();
+      if (!prompt) return;
+
+      addMessage("user", prompt);
+      promptEl.value = "";
+      addMessage("bot", "Thinking...");
+
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+      const botMessages = document.querySelectorAll(".bot");
+      if (botMessages.length) botMessages[botMessages.length - 1].remove();
+      addMessage("bot", data.response || "[Error]");
+    }
+  </script>
+</body>
+</html>
